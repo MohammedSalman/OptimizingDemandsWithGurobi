@@ -14,7 +14,7 @@ if __name__ == '__main__':
     mcf = Mcf(topoObj, pathObj, routingSchemeObj)
 
     for tm in demands.matrices_sequence:
-        mcf.set_traffic_matrix(tm)
+        mcf.given_tm_update_model(tm)
         mcf.optimize()
 
 
