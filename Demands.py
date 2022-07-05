@@ -46,7 +46,7 @@ class Demands:
             num_of_zeros = np.random.randint(int(percentage * ((num_nodes * num_nodes) - num_nodes)))
             for _ in range(num_of_zeros):
                 loc.append(np.random.randint((num_nodes * num_nodes) - num_nodes))
-            print(loc)
+            # print(loc)
             rnd_mat = np.random.uniform(0, 1, size=(num_nodes, num_nodes))
             # print(rnd_mat)
 
@@ -54,18 +54,15 @@ class Demands:
             for src_i, src in enumerate(tm.keys()):
                 for dst_i, dst in enumerate(tm.keys()):
                     if dst != src:
-                        if np.random.uniform() < 0.15:
-                            #TODO the hardcoded number above should be passed as a parameter.
-                            # The user should adjust this parameter is needed.
-                            tm[src][dst] = "zeroes"
+                        if np.random.uniform() < 0.015:
+                            # TODO the hardcoded number above should be passed as a parameter.
+                            # The user should adjust this parameter as needed.
+                            tm[src][dst] = 0.0  # "zeroes"
                         else:
                             tm[src][dst] = rnd_mat[src_i][dst_i] * self.network_load  # std = tm[src][dst]/5
 
             temp_tm = copy.deepcopy(tm)
             self.matrices_sequence.append(temp_tm)
 
-        for traffic_matrix in self.matrices_sequence:
-            print(traffic_matrix)
-
-
-
+        # for traffic_matrix in self.matrices_sequence:
+        #     print(traffic_matrix)

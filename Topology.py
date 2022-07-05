@@ -2,7 +2,6 @@ import networkx
 import networkx as nx
 import matplotlib.pyplot as plt
 
-
 # from networkx import read_gml
 from Paths import Paths
 from RoutingScheme import RoutingScheme
@@ -20,10 +19,16 @@ class Topology:
     #     # self.topo_id = random.random()
     #     pass
 
+    def __init__(self):
+        self.topo = None
+
     def readFromFile(self, filePath):
         self.topo = nx.read_gml(filePath)
 
         print(self.topo.edges(data=True))
+
+    def get_topo(self):
+        return self.topo
 
 
 if __name__ == '__main__':
@@ -33,5 +38,3 @@ if __name__ == '__main__':
     routingObj = RoutingScheme(pathObj)
 
     # networkx.draw_networkx(topo)
-
-

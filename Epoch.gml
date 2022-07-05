@@ -52,30 +52,6 @@ graph [
     Internal 1
     Latitude 39.73915
   ]
-  node [
-    id 3
-    label "Chicago"
-    Country "United States"
-    Longitude -87.65005
-    Internal 1
-    Latitude 41.85003
-  ]
-  node [
-    id 4
-    label "Vienna"
-    Country "United States"
-    Longitude -77.26526
-    Internal 1
-    Latitude 38.90122
-  ]
-  node [
-    id 5
-    label "Atlanta"
-    Country "United States"
-    Longitude -84.38798
-    Internal 1
-    Latitude 33.749
-  ]
   edge [
     source 0
     target 1
@@ -91,36 +67,8 @@ graph [
     LinkNote "45 Mbps "
   ]
   edge [
-    source 0
-    target 4
-    LinkType "DS-3"
-    LinkLabel "45 Mbps DS-3"
-    LinkNote "45 Mbps "
-  ]
-  edge [
-    source 1
-    target 5
-    LinkType "DS-3"
-    LinkLabel "45 Mbps DS-3"
-    LinkNote "45 Mbps "
-  ]
-  edge [
     source 2
-    target 3
-    LinkType "DS-3"
-    LinkLabel "45 Mbps DS-3"
-    LinkNote "45 Mbps "
-  ]
-  edge [
-    source 3
-    target 4
-    LinkType "DS-3"
-    LinkLabel "45 Mbps DS-3"
-    LinkNote "45 Mbps "
-  ]
-  edge [
-    source 4
-    target 5
+    target 1
     LinkType "DS-3"
     LinkLabel "45 Mbps DS-3"
     LinkNote "45 Mbps "

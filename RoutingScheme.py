@@ -17,7 +17,7 @@ class RoutingScheme:
                 path_list = self.pathsObj.paths[source][destination]
                 self.routing_scheme[path_tuple]["Paths"] = path_list
                 self.routing_scheme[path_tuple]["Allocation"] = [1/len(path_list)] * len(path_list)
-        print(self.routing_scheme)
+        # print(self.routing_scheme)
 
     def get_routing_scheme(self):
         return self.routing_scheme
