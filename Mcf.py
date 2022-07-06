@@ -5,6 +5,7 @@ class Mcf:
 
     def __init__(self, shared_dict, pid, topo, paths, routing_scheme, tm):
 
+        self.model_is_feasible = False
         self.z = None
         self.model = None
 
@@ -19,7 +20,7 @@ class Mcf:
         self.bin_paths_variables = {}
         self.demand_constraint = {}  # tracking demands constraints
 
-        # self.build_model()
+        self.build_model()
 
     def build_model(self):
         try:
@@ -67,21 +68,35 @@ class Mcf:
                 self.bin_paths_variables["bin_" + path_name_str] = self.model.addVar(vtype=GRB.BINARY,
                                                                                      name="bin_" + path_name_str)
                 bin_tmp_list.append(self.bin_paths_variables["bin_" + path_name_str])
-                self.model.addConstr(self.paths_variables[path_name_str] >= 0.0) # no need if it is a bin?
+                self.model.addConstr(self.paths_variables[path_name_str] >= 0.0)  # no need if it is a bin?
             self.model.addConstr(sum(bin_tmp_list) == 1.0)
 
     def optimize(self):
-        # todo: remove these two lines, just for testing.
-        self.shared_dict[self.pid]["hello"] = "hi"
-        return
         self.model.update()
         self.model.optimize()
         if self.model.Status != GRB.OPTIMAL:
+            self.model_is_feasible = False
+            return
+        self.model_is_feasible = True
+
+    def save_data_to_shared_dict(self):
+        if self.model_is_feasible == False:
             return
         for v in self.model.getVars():
-            if v.x == 0.0 or v.x == -0.0:
+            # if v.x == 0.0 or v.x == -0.0:
+            #     continue
+            # print(v.varName, v.x)
+            if "path" in v.varName and "bin" not in v.varName:
                 continue
-            print(v.varName, v.x)
+            # don't include the objective variable
+            if v.varName == 'z':
+                continue
+            self.shared_dict[self.pid][v.varName] = 0.0 if v.x == -0.0 else v.x
+        for src in self.tm:
+            for dst in self.tm[src]:
+                src_dst_name = (str(src) + '_' + str(dst)).replace(" ", "")
+                self.shared_dict[self.pid][src_dst_name] = self.tm[src][dst]
+
 
     def printQuality(self):
         # self.model.printQuality()
@@ -89,16 +104,20 @@ class Mcf:
 
         if self.model.Status == GRB.OPTIMAL:
             print('The model is feasible')
+            self.model_is_feasible = True
             return
 
         if self.model.Status == GRB.INF_OR_UNBD:
             print('Model is unbounded')
+            self.model_is_feasible = False
             return
         if self.model.Status == GRB.INFEASIBLE:
             print('Model is infeasible')
+            self.model_is_feasible = False
             return
         if self.model.Status == GRB.UNBOUNDED:
             print('Model is unbounded')
+            self.model_is_feasible = False
             return
 
     def write_model(self):
@@ -116,13 +135,15 @@ class Mcf:
                 tmp_list.append(self.paths_variables[path_name_str])
                 bin_tmp_list.append(self.bin_paths_variables["bin_" + path_name_str])
             # print(tm[src][dst])
-            self.demand_constraint[(src, dst)] = self.model.addConstr(quicksum(tmp_list[i] * bin_tmp_list[i] for i in range(len(tmp_list))) == self.tm[src][dst])  # 0.0 in the template only
+            self.demand_constraint[(src, dst)] = self.model.addConstr(
+                quicksum(tmp_list[i] * bin_tmp_list[i] for i in range(len(tmp_list))) == self.tm[src][
+                    dst])  # 0.0 in the template only
             self.model.update()
-            print(self.demand_constraint[(src, dst)])
-        self.model.update()
-    def build_capacity_constraints(self):
+            # print(self.demand_constraint[(src, dst)])
         self.model.update()
 
+    def build_capacity_constraints(self):
+        self.model.update()
         # first build the linksToRoutes structure:
         linksToRoutes = {}
         # print(self.topoObj.get_topo().edges)  # use (.adj) to print everything
@@ -149,7 +170,7 @@ class Mcf:
             # <=1 instead of self.z * self.topo[link[0]][link[1]]
             # ['capacity']) because we assume any capacity is 1.
             # self.model.addConstr(quicksum(tmp_list[i] * bin_tmp_list[i] for i in range(len(tmp_list))) <= self.z)
-            self.model.addConstr(quicksum(tmp_list) + self.z <= 1) # self.z
+            self.model.addConstr(quicksum(tmp_list) + self.z <= 1)  # self.z
 
             # for link in self.linksToRoutes:
             #     self.m.addConstr(quicksum(

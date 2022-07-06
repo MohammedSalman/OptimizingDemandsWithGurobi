@@ -1,3 +1,5 @@
+import os
+import csv
 import multiprocessing
 from multiprocessing import Process
 
@@ -8,9 +10,11 @@ from RoutingScheme import RoutingScheme
 from Topology import Topology
 
 
-def formulate_and_optimize(shared_dict, pid, topo, path, routing_scheme, current_tm):
-    mcf = Mcf(shared_dict, pid, topo, path, routing_scheme, current_tm)
+def formulate_and_optimize(shared_dict, p_id, topo, path, routing_scheme, current_tm):
+    mcf = Mcf(shared_dict, p_id, topo, path, routing_scheme, current_tm)
     mcf.optimize()
+    mcf.save_data_to_shared_dict()
+
     # mcf.printQuality()
     # mcf.write_model()
 
@@ -25,9 +29,44 @@ def initialize_shared_dictionary():
     return manager.dict()
 
 
+def saved_shared_dict_to_csv():
+    #todo: don't save a demand of a node to itself, example: Denver_Denver.
+    global pid
+    # for pid in shared_dictionary:
+    #     print(pid, shared_dictionary[pid])
+    #
+    #
+
+    OutputDirName = 'output/'
+    try:
+        os.makedirs(OutputDirName)
+    except OSError:
+        pass
+    filename = "output" + '.csv'
+    try:
+        with open(OutputDirName + filename, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile, delimiter=',')
+            # if not header_written:
+            writer.writerow(shared_dictionary[1].keys())
+            #     header_written = True
+            alist = []
+            for pid in shared_dictionary.keys():
+                if not shared_dictionary[pid]: # if dict is empty, continue. Only when the current model is infesable.
+                    continue
+                for field_name in shared_dictionary[pid].keys():
+                    alist.append(shared_dictionary[pid][field_name])
+                writer.writerow(alist)
+                # print(alist)
+                alist = []
+    except PermissionError:
+        print("PermissionError: Check if the file is open.")
+
+
+
+
 if __name__ == '__main__':
-    number_traffic_matrix = 3
-    network_load = 1.0
+    number_traffic_matrix = 10
+    network_load = 1.1
 
     topoObj = Topology()
     topoObj.readFromFile("Epoch.gml")  # Geant2001
@@ -53,7 +92,5 @@ if __name__ == '__main__':
         for j in i:
             j.join()
 
-    for p_id in shared_dictionary:
-
-        print(p_id, shared_dictionary[p_id])
+    saved_shared_dict_to_csv()
     # print(demands.matrices_sequence)
