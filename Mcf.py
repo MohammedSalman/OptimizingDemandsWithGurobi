@@ -3,12 +3,13 @@ from gurobipy import *
 
 class Mcf:
 
-    def __init__(self, shared_dict, topo, paths, routing_scheme, tm):
+    def __init__(self, shared_dict, pid, topo, paths, routing_scheme, tm):
 
         self.z = None
         self.model = None
 
         self.shared_dict = shared_dict
+        self.pid = pid
         self.topoObj = topo
         self.pathObj = paths
         self.routingScheme = routing_scheme
@@ -18,7 +19,7 @@ class Mcf:
         self.bin_paths_variables = {}
         self.demand_constraint = {}  # tracking demands constraints
 
-        self.build_model()
+        # self.build_model()
 
     def build_model(self):
         try:
@@ -70,6 +71,9 @@ class Mcf:
             self.model.addConstr(sum(bin_tmp_list) == 1.0)
 
     def optimize(self):
+        # todo: remove these two lines, just for testing.
+        self.shared_dict[self.pid]["hello"] = "hi"
+        return
         self.model.update()
         self.model.optimize()
         if self.model.Status != GRB.OPTIMAL:
