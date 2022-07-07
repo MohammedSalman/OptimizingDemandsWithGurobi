@@ -24,34 +24,28 @@ def chunks(ll, nn):
         yield ll[index:index + nn]
 
 
-def initialize_shared_dictionary():
-    manager = multiprocessing.Manager()
-    return manager.dict()
+# def initialize_shared_dictionary():
+#     manager = multiprocessing.Manager()
+#     return manager.dict()
 
 
 def saved_shared_dict_to_csv():
-    #todo: don't save a demand of a node to itself, example: Denver_Denver.
     global pid
-    # for pid in shared_dictionary:
-    #     print(pid, shared_dictionary[pid])
-    #
-    #
-
-    OutputDirName = 'output/'
+    output_dir_name = 'output/'
     try:
-        os.makedirs(OutputDirName)
+        os.makedirs(output_dir_name)
     except OSError:
         pass
     filename = "output" + '.csv'
     try:
-        with open(OutputDirName + filename, 'w', newline='') as csvfile:
+        with open(output_dir_name + filename, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
             # if not header_written:
             writer.writerow(shared_dictionary[1].keys())
             #     header_written = True
             alist = []
             for pid in shared_dictionary.keys():
-                if not shared_dictionary[pid]: # if dict is empty, continue. Only when the current model is infesable.
+                if not shared_dictionary[pid]:  # if dict is empty, continue. Only when the current model is infesable.
                     continue
                 for field_name in shared_dictionary[pid].keys():
                     alist.append(shared_dictionary[pid][field_name])
@@ -60,8 +54,6 @@ def saved_shared_dict_to_csv():
                 alist = []
     except PermissionError:
         print("PermissionError: Check if the file is open.")
-
-
 
 
 if __name__ == '__main__':
@@ -75,7 +67,7 @@ if __name__ == '__main__':
     demands = Demands(topoObj, "uniform", number_traffic_matrix, network_load)
 
     manager = multiprocessing.Manager()
-    shared_dictionary =  manager.dict()
+    shared_dictionary = manager.dict()
     procs = []
     for pid, traffic_matrix in enumerate(demands.matrices_sequence):
         # pid is not a process id but it is a unique id.

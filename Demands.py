@@ -54,7 +54,7 @@ class Demands:
             for src_i, src in enumerate(tm.keys()):
                 for dst_i, dst in enumerate(tm.keys()):
                     if dst != src:
-                        if np.random.uniform() < 0.015:
+                        if np.random.uniform() < 0.5:
                             # TODO the hardcoded number above should be passed as a parameter.
                             # The user should adjust this parameter as needed.
                             tm[src][dst] = 0.0  # "zeroes"

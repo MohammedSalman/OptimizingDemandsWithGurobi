@@ -80,33 +80,33 @@ class Mcf:
         self.model_is_feasible = True
 
     def save_data_to_shared_dict(self):
-        if self.model_is_feasible == False:
+        if not self.model_is_feasible:
             return
+        # store the input first (traffic matrices).
+        for src in self.tm:
+            for dst in self.tm[src]:
+                if src == dst:
+                    continue
+                src_dst_name = (str(src) + '_' + str(dst)).replace(" ", "")
+                self.shared_dict[self.pid][src_dst_name] = self.tm[src][dst]
+
         for v in self.model.getVars():
             # if v.x == 0.0 or v.x == -0.0:
             #     continue
             # print(v.varName, v.x)
             if "path" in v.varName and "bin" not in v.varName:
                 continue
-            # don't include the objective variable
+            # don't include the variable of the objective function.
             if v.varName == 'z':
                 continue
             self.shared_dict[self.pid][v.varName] = 0.0 if v.x == -0.0 else v.x
-        for src in self.tm:
-            for dst in self.tm[src]:
-                src_dst_name = (str(src) + '_' + str(dst)).replace(" ", "")
-                self.shared_dict[self.pid][src_dst_name] = self.tm[src][dst]
 
 
-    def printQuality(self):
-        # self.model.printQuality()
-        # self.model.Status
-
+    def print_quality(self):
         if self.model.Status == GRB.OPTIMAL:
             print('The model is feasible')
             self.model_is_feasible = True
             return
-
         if self.model.Status == GRB.INF_OR_UNBD:
             print('Model is unbounded')
             self.model_is_feasible = False
@@ -144,13 +144,13 @@ class Mcf:
 
     def build_capacity_constraints(self):
         self.model.update()
-        # first build the linksToRoutes structure:
-        linksToRoutes = {}
+        # first build the links_to_routes structure:
+        links_to_routes = {}
         # print(self.topoObj.get_topo().edges)  # use (.adj) to print everything
         for link in self.topoObj.get_topo().edges:
-            linksToRoutes[(link[0], link[1])] = []
-            linksToRoutes[(link[1], link[0])] = []
-        # print(linksToRoutes)
+            links_to_routes[(link[0], link[1])] = []
+            links_to_routes[(link[1], link[0])] = []
+        # print(links_to_routes)
         routing_scheme = self.routingScheme.get_routing_scheme()
         for (src, dst) in routing_scheme:
             for path_list_no, path in enumerate(routing_scheme[(src, dst)]['Paths']):
@@ -158,22 +158,11 @@ class Mcf:
                     src + '_' + dst + '_path_' + str(path_list_no))  # path sample: PaloAlto_LosAngeles_path_1
                 path_name_str = path_name_str.replace(" ", "")
                 for index in range(len(path) - 1):
-                    linksToRoutes[(path[index], path[index + 1])].append(self.paths_variables[path_name_str])
+                    links_to_routes[(path[index], path[index + 1])].append(self.paths_variables[path_name_str])
 
-        for link in linksToRoutes:
+        for link in links_to_routes:
             tmp_list = []
             # bin_tmp_list = []
-            for variable in linksToRoutes[link]:
+            for variable in links_to_routes[link]:
                 tmp_list.append(variable)
-                # print(variable.varName)
-                # bin_tmp_list.append(self.bin_paths_variables["bin_" + variable.varName])
-            # <=1 instead of self.z * self.topo[link[0]][link[1]]
-            # ['capacity']) because we assume any capacity is 1.
-            # self.model.addConstr(quicksum(tmp_list[i] * bin_tmp_list[i] for i in range(len(tmp_list))) <= self.z)
             self.model.addConstr(quicksum(tmp_list) + self.z <= 1)  # self.z
-
-            # for link in self.linksToRoutes:
-            #     self.m.addConstr(quicksum(
-            #         self.bps[variable] * self.demandVolumes[self.RoutesToDemands[variable][0]][
-            #             self.RoutesToDemands[variable][1]]
-            #         for variable in self.linksToRoutes[link]) <= self.z * self.topo[link[0]][link[1]]['capacity'])
